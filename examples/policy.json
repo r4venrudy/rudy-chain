@@ -1,0 +1,8 @@
+{
+  "requireStrongHash": true,
+  "requireVersion": true,
+  "requirePurl": true,
+  "requireKnownDependencies": true,
+  "deniedPurls": ["pkg:generic/example-helper@0.9.0"],
+  "deniedLicenseValues": []
+}

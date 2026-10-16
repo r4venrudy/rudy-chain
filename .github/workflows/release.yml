@@ -1,0 +1,52 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet build tests/Rudy.Chain.Tests -c Release
+      - run: dotnet run --project tests/Rudy.Chain.Tests -c Release --no-build -- .
+  publish:
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Check release version
+        shell: pwsh
+        run: |
+          [xml]$properties = Get-Content Directory.Build.props
+          if ($env:GITHUB_REF_NAME -ne "v$($properties.Project.PropertyGroup.Version)") { throw 'Tag/version mismatch' }
+      - run: dotnet pack src/Rudy.Chain.Cli -c Release -o artifacts
+      - run: dotnet tool install Rudy.Chain.Tool --version 0.1.0 --tool-path .tools --add-source artifacts --configfile NuGet.Config
+      - run: .tools/rudy-chain audit examples/before.cdx.json
+      - run: dotnet publish src/Rudy.Chain.Cli -c Release --no-self-contained -p:UseAppHost=false -o artifacts/portable
+      - name: Prepare portable archive and checksums
+        shell: pwsh
+        run: |
+          Copy-Item README.md,LICENSE,NuGet.Config artifacts/portable/
+          Copy-Item examples artifacts/portable/ -Recurse
+          Compress-Archive -Path artifacts/portable/* -DestinationPath artifacts/rudy-chain-portable.zip
+          $items = Get-ChildItem artifacts -File | Sort-Object Name
+          $lines = $items | ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant())  $($_.Name)" }
+          $lines | Set-Content artifacts/SHA256SUMS.txt -Encoding utf8NoBOM
+      - name: Publish preview release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" artifacts/*.nupkg artifacts/rudy-chain-portable.zip artifacts/SHA256SUMS.txt --prerelease --title "Rudy Chain $GITHUB_REF_NAME" --notes-file docs/RELEASE.md

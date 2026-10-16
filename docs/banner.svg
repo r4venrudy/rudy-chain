@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360" role="img" aria-labelledby="title desc">
+<title id="title">RUDY / CHAIN</title><desc id="desc">Know what ships. Trace what depends on it. Offline supply-chain review in C#.</desc>
+<rect width="1280" height="360" rx="18" fill="#0a1118"/>
+<path d="M0 0h7v360H0" fill="#55e0b6"/>
+<path d="M64 257H1216" stroke="#24333d"/>
+<g fill="none" stroke="#142333"><path d="M900 0V238M960 0V238M1020 0V238M1080 0V238M1140 0V238M1200 0V238M880 44H1280M880 104H1280M880 164H1280M880 224H1280"/></g>
+<text x="64" y="48" fill="#55e0b6" font-family="Consolas,monospace" font-size="14" letter-spacing="4">RUDY SYSTEMS / DEVELOPER TOOLS</text>
+<text x="60" y="150" fill="#edf4f7" font-family="Arial,Helvetica,sans-serif" font-size="68" font-weight="700">RUDY <tspan fill="#55e0b6">/ CHAIN</tspan></text>
+<text x="64" y="206" fill="#b7c6ce" font-family="Arial,Helvetica,sans-serif" font-size="25">Know what ships. Trace what depends on it.</text>
+<g fill="none" stroke="#55e0b6" stroke-width="2"><path d="M955 139h53m38-13 48-43m-48 68 48 43"/><rect x="925" y="120" width="30" height="38" rx="5"/><rect x="1008" y="120" width="38" height="38" rx="5"/><rect x="1094" y="63" width="38" height="38" rx="5"/><rect x="1094" y="176" width="38" height="38" rx="5"/></g>
+<circle cx="1113" cy="82" r="5" fill="#55e0b6"/><circle cx="1027" cy="139" r="5" fill="#55e0b6"/>
+<text x="64" y="301" fill="#55e0b6" font-family="Consolas,monospace" font-size="15" letter-spacing="2">C# / CYCLONEDX / DEPENDENCY GRAPHS / SARIF</text>
+<text x="1216" y="301" text-anchor="end" fill="#b7c6ce" font-family="Consolas,monospace" font-size="12" letter-spacing="1">v0.1.0 / DEVELOPER PREVIEW</text>
+</svg>

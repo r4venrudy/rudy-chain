@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>rudy-chain</ToolCommandName>
+    <PackageId>Rudy.Chain.Tool</PackageId>
+    <Authors>raven</Authors>
+    <Description>Offline CycloneDX dependency graph analysis, release comparison and supply-chain policy checks.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/r4venrudy/rudy-chain</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/r4venrudy/rudy-chain</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Rudy.Chain.Core/Rudy.Chain.Core.csproj" />
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>

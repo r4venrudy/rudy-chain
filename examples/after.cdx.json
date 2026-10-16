@@ -1,0 +1,10 @@
+{
+  "bomFormat": "CycloneDX", "specVersion": "1.6", "version": 1,
+  "metadata": {"component": {"type": "application", "bom-ref": "app", "name": "example-app", "version": "1.0.0", "purl": "pkg:generic/example-app@1.0.0", "hashes": [{"alg": "SHA-256", "content": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}]}},
+  "components": [
+    {"type": "library", "bom-ref": "web", "name": "example-web", "version": "1.0.0", "purl": "pkg:generic/example-web@1.0.0", "licenses": [{"license": {"id": "MIT"}}], "hashes": [{"alg": "SHA-256", "content": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}]},
+    {"type": "library", "bom-ref": "parser", "name": "example-parser", "version": "2.1.0", "purl": "pkg:generic/example-parser@2.1.0", "licenses": [{"license": {"id": "Apache-2.0"}}]},
+    {"type": "library", "bom-ref": "helper", "name": "example-helper", "version": "0.9.0", "purl": "pkg:generic/example-helper@0.9.0", "licenses": [{"license": {"id": "MIT"}}]}
+  ],
+  "dependencies": [{"ref": "app", "dependsOn": ["web"]}, {"ref": "web", "dependsOn": ["parser", "helper"]}, {"ref": "parser", "dependsOn": []}]
+}

@@ -365,6 +365,18 @@ Test("CLI why can explain paths from a selected component", () =>
     Assert(Cli("why","examples/before.cdx.json","parser","--from","absent").Code == 2);
     Assert(Cli("why","examples/before.cdx.json","parser","--invalid","web").Code == 2);
 });
+Test("CLI impact supports bounded reverse traversal", () =>
+{
+    foreach (var (depth,count) in new[]{("0",0),("1",1),("2",2)})
+    {
+        var result = Cli("impact","examples/before.cdx.json","parser","--depth",depth); Assert(result.Code == 0);
+        using var doc = JsonDocument.Parse(result.Out); Assert(doc.RootElement.GetProperty("dependents").GetArrayLength() == count);
+    }
+    Assert(Cli("impact","examples/before.cdx.json","parser","--depth","-1").Code == 2);
+    Assert(Cli("impact","examples/before.cdx.json","parser","--depth","abc").Code == 2);
+    var f = Fixture(3); Edge(f,0,1); Edge(f,1,2); Edge(f,2,0);
+    var graph = new Graph(Parse(f)); Assert(graph.Traverse("c2",true).Count == 3);
+});
 var failures = 0;
 foreach (var test in tests)
 {

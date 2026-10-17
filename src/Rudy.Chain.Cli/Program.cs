@@ -14,7 +14,7 @@ static int Run(string[] args)
                 Rudy Chain 0.1.0 — offline supply-chain review
                 audit <bom.json> [--policy <policy.json>] [--format json|sarif] [--fail-on error|warning|none]
                 why <bom.json> <bom-ref> [--from <ref>]
-                impact <bom.json> <bom-ref>    all declared reverse dependents
+                impact <bom.json> <bom-ref> [--depth <0..10000>]
                 cycles <bom.json>            dependency SCCs and self-loops
                 leaves <bom.json>            explicit terminal dependency records
                 summary <bom.json>           inventory counts and metadata coverage
@@ -74,7 +74,7 @@ static int Run(string[] args)
         }
         if (args[0] == "diff" && args.Length == 3)
         { Console.WriteLine(JsonOutput.Serialize(Analysis.Diff(Import.Load(args[1]), Import.Load(args[2])))); return 0; }
-        if (args[0] is "why" or "impact" && (args.Length == 3 || (args[0] == "why" && args.Length == 5)))
+        if (args[0] is "why" or "impact" && (args.Length == 3 || args.Length == 5))
         {
             var bom = Import.Load(args[1]);
             var graph = new Graph(bom);
@@ -91,8 +91,13 @@ static int Run(string[] args)
             }
             else
             {
-                var ancestors = graph.Traverse(args[2], reverse: true);
+                var depth = int.MaxValue;
+                if (args.Length == 5 && (args[3] != "--depth" || !int.TryParse(args[4],System.Globalization.NumberStyles.None,
+                    System.Globalization.CultureInfo.InvariantCulture,out depth) || depth > Import.MaxComponents))
+                    throw new InputException("Impact depth must be an integer from 0 to 10000.");
+                var ancestors = graph.Traverse(args[2], reverse: true, maxDepth: depth);
                 Console.WriteLine(JsonOutput.Serialize(new { schema = "rudy-chain/impact/v1", bom.Digest, target = args[2],
+                    maxDepth = depth == int.MaxValue ? (int?)null : depth,
                     dependents = ancestors.Keys.Where(k => k != args[2]).Order(StringComparer.Ordinal).ToArray(),
                     unknownDependencyRecords = unknown, notices = bom.Notices }));
             }

@@ -216,3 +216,10 @@ cycle participants, not an ordered route. Missing graph records can hide cycles.
 declared path `web → parser`. Without `--from`, queries still start at the BOM
 root. The result retains the inventory `root` and adds the actual `source`. An
 unknown source is rejected; disconnected paths have `declaredReachable: false`.
+
+### Impact depth
+
+`rudy-chain impact examples/before.cdx.json parser --depth 1` lists direct
+dependents only. Depth 0 returns no dependents; omitting the option preserves full
+transitive traversal. Depth counts shortest declared reverse hops (0–10000),
+handles cycles, and never includes the queried component itself.

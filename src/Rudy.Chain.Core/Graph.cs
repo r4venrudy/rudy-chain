@@ -17,16 +17,20 @@ public sealed class Graph
         foreach (var (id, parents) in reverse) Reverse[id] = parents.Order(StringComparer.Ordinal).ToArray();
     }
 
-    public Dictionary<string, string?> Traverse(string start, bool reverse = false)
+    public Dictionary<string, string?> Traverse(string start, bool reverse = false, int maxDepth = int.MaxValue)
     {
         if (!Forward.ContainsKey(start)) throw new InputException("Component ref was not found.");
+        if (maxDepth < 0) throw new InputException("Traversal depth cannot be negative.");
         var adjacency = reverse ? Reverse : Forward;
         var previous = new Dictionary<string, string?>(StringComparer.Ordinal) { [start] = null };
-        var queue = new Queue<string>();
-        queue.Enqueue(start);
+        var queue = new Queue<(string Id, int Depth)>();
+        queue.Enqueue((start, 0));
         while (queue.TryDequeue(out var current))
-            foreach (var next in adjacency[current])
-                if (previous.TryAdd(next, current)) queue.Enqueue(next);
+        {
+            if (current.Depth >= maxDepth) continue;
+            foreach (var next in adjacency[current.Id])
+                if (previous.TryAdd(next, current.Id)) queue.Enqueue((next,current.Depth + 1));
+        }
         return previous;
     }
 

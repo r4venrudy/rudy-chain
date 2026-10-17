@@ -59,10 +59,11 @@ known reverse dependents, not a claim that unknown graph portions have no impact
 | CHAIN007 | error | Exact purl denied by supplied policy |
 | CHAIN008 | error | Same purl has differing strong hashes of the same algorithm |
 | CHAIN009 | error | Exact whole license value denied by supplied policy |
+| CHAIN010 | warning | No license declaration when `requireLicense` is enabled |
 
 Cycles and unreachable components can be legitimate inventory structures. Levels
 represent policy priority, not vulnerability severity or CVSS. Require flags only
-control CHAIN001–004; other observations remain enabled. All component scopes are
+control CHAIN001–004 and CHAIN010; other observations remain enabled. All component scopes are
 audited. Deny lists are exact and case-sensitive, with no wildcard, SPDX expression
 evaluation, version-range matching or purl normalization. Unknown policy keys,
 duplicate keys, null/nonboolean flags and malformed lists are errors.

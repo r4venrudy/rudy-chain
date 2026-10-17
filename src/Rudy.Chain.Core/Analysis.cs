@@ -17,6 +17,8 @@ public static class Analysis
         }
         foreach (var (id, item) in inventory.Components)
         {
+            if (policy.RequireLicense && item.Licenses.Length == 0)
+                Add("CHAIN010", "warning", id, "No component license value is declared.");
             if (policy.RequireStrongHash && !item.HasStrongHash)
                 Add("CHAIN001", "warning", id, "No declared SHA-256, SHA-384 or SHA-512 digest.");
             if (policy.RequireVersion && string.IsNullOrWhiteSpace(item.Version))

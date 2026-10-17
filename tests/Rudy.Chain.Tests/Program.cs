@@ -283,6 +283,26 @@ Test("missing purl participates in the warning gate", () =>
     try { File.WriteAllText(file, f.ToJsonString()); Assert(Cli("audit", file, "--fail-on", "warning").Code == 1); }
     finally { File.Delete(file); }
 });
+Test("optional license requirement loads strictly and produces SARIF warnings", () =>
+{
+    var file = Path.GetTempFileName();
+    try
+    {
+        File.WriteAllText(file, "{\"requireLicense\":true}");
+        var p = Policy.Load(file); var f = Fixture(1);
+        var report = Analysis.Audit(Parse(f), p);
+        Assert(report.Findings.Single().RuleId == "CHAIN010");
+        var inventoryFile = Path.GetTempFileName();
+        try { File.WriteAllText(inventoryFile,f.ToJsonString()); Assert(Cli("audit", inventoryFile, "--policy", file, "--fail-on", "warning").Code == 1); }
+        finally { File.Delete(inventoryFile); }
+        Assert(Sarif.Export(report)["runs"]![0]!["tool"]!["driver"]!["rules"]!.AsArray().Any(rule => rule!["id"]!.GetValue<string>() == "CHAIN010"));
+        Item(f,0)["licenses"] = new JsonArray(new JsonObject { ["license"] = new JsonObject { ["id"] = "MIT" } });
+        Assert(Analysis.Audit(Parse(f),p).Findings.Length == 0);
+        File.WriteAllText(file,"{\"requireLicense\":null}"); Reject(() => Policy.Load(file));
+    }
+    finally { File.Delete(file); }
+});
+
 var failures = 0;
 foreach (var test in tests)
 {

@@ -12,7 +12,8 @@ public static class Sarif
         ["CHAIN003"] = "Missing package URL", ["CHAIN004"] = "Unknown dependency record",
         ["CHAIN005"] = "No declared root path", ["CHAIN006"] = "Dependency cycle",
         ["CHAIN007"] = "Denied package URL", ["CHAIN008"] = "Conflicting package digests",
-        ["CHAIN009"] = "Denied complete license value"
+        ["CHAIN009"] = "Denied complete license value",
+        ["CHAIN010"] = "Missing license declaration"
     };
     public static JsonObject Export(AuditReport report)
     {

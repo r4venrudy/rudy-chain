@@ -176,3 +176,10 @@ Specification references: [CycloneDX dependency semantics](https://cyclonedx.org
 ---
 
 <p align="center"><a href="LICENSE">MIT licensed</a> · Built by <a href="https://rudy.systems">Rudy Systems</a> · <a href="https://github.com/r4venrudy">r4venrudy</a></p>
+
+### License metadata gate
+
+Set `"requireLicense": true` in your policy to flag components without any license
+declaration (CHAIN010, warning). This optional flag defaults to false; the original
+requirement flags still default to true. A declared value is metadata, not a license
+compliance decision. Use `--fail-on warning` to enforce it in CI.

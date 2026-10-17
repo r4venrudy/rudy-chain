@@ -18,8 +18,8 @@ static int Run(string[] args)
                 cycles <bom.json>            dependency SCCs and self-loops
                 leaves <bom.json>            explicit terminal dependency records
                 summary <bom.json>           inventory counts and metadata coverage
-                diff <before.json> <after.json>
-                Exit: 0 success, 1 policy threshold reached, 2 input/usage/I/O error.
+                diff <before.json> <after.json> [--fail-on-change]
+                Exit: 0 success, 1 policy threshold or diff change gate reached, 2 input/usage/I/O error.
                 """);
             return 0;
         }
@@ -72,8 +72,16 @@ static int Run(string[] args)
                 scopes = Counts(c => c.Scope), notices = bom.Notices }));
             return 0;
         }
-        if (args[0] == "diff" && args.Length == 3)
-        { Console.WriteLine(JsonOutput.Serialize(Analysis.Diff(Import.Load(args[1]), Import.Load(args[2])))); return 0; }
+        if (args[0] == "diff" && (args.Length == 3 || args.Length == 4))
+        {
+            if (args.Length == 4 && args[3] != "--fail-on-change") throw new InputException("Invalid diff option.");
+            var report = Analysis.Diff(Import.Load(args[1]), Import.Load(args[2]));
+            Console.WriteLine(JsonOutput.Serialize(report));
+            var changed = report.Added.Length + report.Removed.Length + report.Changed.Length + report.AddedEdges.Length + report.RemovedEdges.Length > 0
+                || report.BeforeRoot != report.AfterRoot
+                || !report.BeforeUnknown.SequenceEqual(report.AfterUnknown);
+            return args.Length == 4 && changed ? 1 : 0;
+        }
         if (args[0] is "why" or "impact" && (args.Length == 3 || args.Length == 5))
         {
             var bom = Import.Load(args[1]);

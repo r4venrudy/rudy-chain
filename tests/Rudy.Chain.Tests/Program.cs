@@ -377,6 +377,47 @@ Test("CLI impact supports bounded reverse traversal", () =>
     var f = Fixture(3); Edge(f,0,1); Edge(f,1,2); Edge(f,2,0);
     var graph = new Graph(Parse(f)); Assert(graph.Traverse("c2",true).Count == 3);
 });
+Test("CLI diff gate distinguishes semantic change from byte changes", () =>
+{
+    var same = Cli("diff","examples/before.cdx.json","examples/before.cdx.json","--fail-on-change"); Assert(same.Code == 0);
+    var changed = Cli("diff","examples/before.cdx.json","examples/after.cdx.json","--fail-on-change"); Assert(changed.Code == 1);
+    using var doc = JsonDocument.Parse(changed.Out); Assert(doc.RootElement.GetProperty("schema").GetString() == "rudy-chain/diff/v1");
+    var f = Fixture(2); var file = Path.GetTempFileName(); var second = Path.GetTempFileName();
+    try
+    {
+        File.WriteAllText(file,f.ToJsonString()); File.WriteAllText(second,f.ToJsonString().Replace("c0","new0").Replace("c1","new1"));
+        Assert(Cli("diff",file,second,"--fail-on-change").Code == 0);
+        f["dependencies"]!.AsArray().RemoveAt(1); File.WriteAllText(second,f.ToJsonString());
+        Assert(Cli("diff",file,second,"--fail-on-change").Code == 1);
+        Assert(Cli("diff",file,second,"--unknown").Code == 2);
+    }
+    finally { File.Delete(file); File.Delete(second); }
+});
+Test("bounded reverse traversal handles cycles and converging paths", () =>
+{
+    var f = Fixture(5); Edge(f,0,1,2); Edge(f,1,3); Edge(f,2,3); Edge(f,3,4); Edge(f,4,3);
+    var graph = new Graph(Parse(f));
+    Assert(graph.Traverse("c3",true,maxDepth:0).Keys.SequenceEqual(new[]{"c3"}));
+    Assert(graph.Traverse("c3",true,maxDepth:1).Keys.Order().SequenceEqual(new[]{"c1","c2","c3","c4"}));
+    Assert(graph.Traverse("c3",true,maxDepth:2).Count == 5);
+    Reject(() => graph.Traverse("c3",true,maxDepth:-1));
+});
+Test("diff gate catches isolated edge and root-role changes", () =>
+{
+    var f = Fixture(2); var first = Path.GetTempFileName(); var second = Path.GetTempFileName();
+    try
+    {
+        File.WriteAllText(first,f.ToJsonString()); Edge(f,0,1); File.WriteAllText(second,f.ToJsonString());
+        Assert(Cli("diff",first,second,"--fail-on-change").Code == 1);
+        Edge(f,0); var oldRoot=Item(f,0).DeepClone(); var nextRoot=Item(f,1).DeepClone();
+        f["metadata"]!["component"]=nextRoot; f["components"]=new JsonArray(oldRoot);
+        File.WriteAllText(second,f.ToJsonString());
+        var result=Cli("diff",first,second,"--fail-on-change"); Assert(result.Code == 1);
+        using var doc=JsonDocument.Parse(result.Out); Assert(doc.RootElement.GetProperty("changed").GetArrayLength()==0);
+    }
+    finally {File.Delete(first); File.Delete(second);}
+});
+
 var failures = 0;
 foreach (var test in tests)
 {

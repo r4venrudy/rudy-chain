@@ -18,7 +18,11 @@ inspect dependency cycles, compare two release inventories, and gate CI on expli
 supply-chain metadata policies. Everything runs locally in C#, with no third-party
 runtime packages, network calls, package execution or external vulnerability feed.
 
-**v0.1.0 developer preview.** This analyzes declarations in an SBOM. It does not
+**Developer preview.** The features below describe current `main`. The existing
+**v0.1.0 release assets** contain the original audit/why/impact/diff commands; build
+from source to use the new queries and options until the next release.
+
+**Inventory scope.** This analyzes declarations in an SBOM. It does not
 inspect package contents, authenticate publishers, discover CVEs, prove runtime
 reachability or decide whether a dependency is exploitable. Missing graph records
 are reported as **unknown**, not silently treated as complete leaves.
@@ -101,7 +105,7 @@ denies that helper, and the warning threshold catches missing metadata.
 
 JSON goes to stdout; diagnostics go to stderr. Exit **0** means the command
 completed without reaching its policy threshold, **1** means the threshold was
-reached, and **2** means invalid input, usage or I/O failure. The default audit
+reached (or `diff --fail-on-change` detected a semantic change), and **2** means invalid input, usage or I/O failure. The default audit
 threshold is `error`; use `--fail-on warning` for metadata gates or `--fail-on none`
 for collection only. Notes alone do not fail a gate.
 
@@ -119,7 +123,7 @@ for collection only. Notes alone do not fail a gate.
 ```
 
 Policy keys are strict; typos are rejected. Omitted boolean settings default to
-`true`. Deny lists match exact, case-sensitive strings. `deniedLicenseValues`
+`true`, except the optional `requireLicense` flag, which defaults to `false`. Deny lists match exact, case-sensitive strings. `deniedLicenseValues`
 compares a **whole** declared license ID, name or expression; it does not parse
 SPDX expressions, evaluate `AND`/`OR`/exceptions, or provide legal advice. For
 example, denying `GPL-3.0-only` does not match `MIT OR GPL-3.0-only`; list the
@@ -137,45 +141,7 @@ complete report. Uploading SARIF is a separate CI step. Findings are inventory
 observations, not source-line diagnostics; SARIF contains component references
 and dependency paths in result properties, without invented file locations.
 
-## Validation and architecture
-
-The dependency-free C# regression runner covers input rejection, shortest paths,
-reverse impact, cycles, policy failures, diff semantics, SARIF and actual CLI
-processes. It also compares 100 seeded random graphs against an independently
-implemented transitive-closure oracle, and exercises a 10,000-node chain to check
-that graph traversal does not depend on the process call stack.
-
-CI runs the same runner on Linux, Windows and macOS, then builds and smoke-tests
-the .NET tool package. Release automation repeats those gates before packaging.
-See [validation](docs/VALIDATION.md) for recorded local results and how to reproduce
-them. A configured workflow is not proof of a successful run; use the live badge.
-
-```text
-src/Rudy.Chain.Core/    Importer, graph algorithms, policy, diff and SARIF
-src/Rudy.Chain.Cli/     CLI and installable .NET tool
-tests/Rudy.Chain.Tests/ Regression runner, independent graph oracle and CLI tests
-examples/              Synthetic before/after inventories and policy
-docs/CONTRACT.md       Supported fields, semantics, limits and rule IDs
-```
-
-Input order is normalized for components, edges, licenses and hashes. Reports
-include SHA-256 of the original bytes, so formatting changes alter the input
-digest even when the semantic diff is empty. All inventory variants are retained
-within each `(type, group, name)` package group. Those fields can collide in weak
-inventories; review groups rather than treating them as authenticated identities.
-
-Unknown dependencies can hide real paths and dependents. Component containment
-does not imply a dependency. Audits report all components, including optional and
-excluded scopes; they do not infer what is installed in production.
-
-See [security boundaries](SECURITY.md) and [contributing](CONTRIBUTING.md).
-Specification references: [CycloneDX dependency semantics](https://cyclonedx.org/use-cases/software-dependencies/),
-[JSON reference](https://cyclonedx.org/docs/1.7/json/) and
-[.NET tool packaging](https://learn.microsoft.com/en-us/dotnet/core/tools/global-tools-how-to-create).
-
----
-
-<p align="center"><a href="LICENSE">MIT licensed</a> · Built by <a href="https://rudy.systems">Rudy Systems</a> · <a href="https://github.com/r4venrudy">r4venrudy</a></p>
+## Extended queries and policies
 
 ### License metadata gate
 
@@ -223,3 +189,50 @@ unknown source is rejected; disconnected paths have `declaredReachable: false`.
 dependents only. Depth 0 returns no dependents; omitting the option preserves full
 transitive traversal. Depth counts shortest declared reverse hops (0–10000),
 handles cycles, and never includes the queried component itself.
+
+### Gate release inventory changes
+
+`rudy-chain diff examples/before.cdx.json examples/after.cdx.json --fail-on-change`
+emits the full JSON diff and exits 1 when package variants, edges, the root
+coordinate or unknown-record coordinates change. Byte formatting and `bom-ref`
+renaming alone do not fail the gate. Without the flag, valid diffs still exit 0.
+
+## Validation and architecture
+
+The dependency-free C# regression runner covers input rejection, shortest paths,
+reverse impact, cycles, policy failures, diff semantics, SARIF and actual CLI
+processes. It also compares 100 seeded random graphs against an independently
+implemented transitive-closure oracle, and exercises a 10,000-node chain to check
+that graph traversal does not depend on the process call stack.
+
+CI runs the same runner on Linux, Windows and macOS, then builds and smoke-tests
+the .NET tool package. Release automation repeats those gates before packaging.
+See [validation](docs/VALIDATION.md) for recorded local results and how to reproduce
+them. A configured workflow is not proof of a successful run; use the live badge.
+
+```text
+src/Rudy.Chain.Core/    Importer, graph algorithms, policy, diff and SARIF
+src/Rudy.Chain.Cli/     CLI and installable .NET tool
+tests/Rudy.Chain.Tests/ Regression runner, independent graph oracle and CLI tests
+examples/              Synthetic before/after inventories and policy
+docs/CONTRACT.md       Supported fields, semantics, limits and rule IDs
+```
+
+Input order is normalized for components, edges, licenses and hashes. Reports
+include SHA-256 of the original bytes, so formatting changes alter the input
+digest even when the semantic diff is empty. All inventory variants are retained
+within each `(type, group, name)` package group. Those fields can collide in weak
+inventories; review groups rather than treating them as authenticated identities.
+
+Unknown dependencies can hide real paths and dependents. Component containment
+does not imply a dependency. Audits report all components, including optional and
+excluded scopes; they do not infer what is installed in production.
+
+See [security boundaries](SECURITY.md) and [contributing](CONTRIBUTING.md).
+Specification references: [CycloneDX dependency semantics](https://cyclonedx.org/use-cases/software-dependencies/),
+[JSON reference](https://cyclonedx.org/docs/1.7/json/) and
+[.NET tool packaging](https://learn.microsoft.com/en-us/dotnet/core/tools/global-tools-how-to-create).
+
+---
+
+<p align="center"><a href="LICENSE">MIT licensed</a> · Built by <a href="https://rudy.systems">Rudy Systems</a> · <a href="https://github.com/r4venrudy">r4venrudy</a></p>

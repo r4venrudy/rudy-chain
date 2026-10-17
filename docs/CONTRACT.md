@@ -99,8 +99,29 @@ Result properties retain component ref, input digest and a dependency path.
 Fingerprints hash the JSON pair `[ruleId, componentRef]`; they are stable within a
 reference scheme, not invariant under `bom-ref` renaming or across unrelated BOMs.
 
-Exit 0: valid completed command below the threshold. Exit 1: audit threshold met.
+Exit 0: valid completed command below the threshold. Exit 1: audit threshold or optional diff change gate met.
 Exit 2: rejected input, bad usage or I/O failure. Errors go to stderr; a rejected
 input produces no report on stdout. `--fail-on error` is the default. `warning`
-includes error and warning; `none` never rejects a valid report. Diff does not have
-a policy gate. Output pipes and filesystem permissions are the operator's concern.
+includes error and warning; `none` never rejects a valid report. Diff optionally
+accepts `--fail-on-change` to gate semantic inventory changes. Output pipes and filesystem permissions are the operator's concern.
+
+## Extended queries
+
+`summary` emits `rudy-chain/summary/v1`, counts metadata presence, explicit leaves,
+known reachability and omitted records, and groups exact type/scope strings.
+`leaves` emits `rudy-chain/leaves/v1`; omitted dependency records never count as
+leaves. `cycles` emits `rudy-chain/cycles/v1`; SCC members are sets, not routes.
+All three include the input digest and coverage notices. Graph queries do not
+run policy gates and complete with exit 0 for valid input.
+
+`why --from <ref>` preserves the BOM root and reports the chosen `source`.
+`impact --depth N` limits shortest reverse hops to N, from 0 through 10000.
+Omitting depth retains full traversal (`maxDepth: null`). Unknown dependencies
+can hide additional paths, leaves and cycles at any depth.
+
+`requireLicense` defaults to false. `deniedComponentTypes` defaults to an empty
+list and matches exact, case-sensitive type strings for all components.
+
+The optional diff gate ignores byte formatting and reference renaming. It fails
+on package/edge changes, a changed root coordinate, or changed unknown-record
+coordinates. Exit 1 still includes the complete diff report on stdout.

@@ -60,6 +60,7 @@ known reverse dependents, not a claim that unknown graph portions have no impact
 | CHAIN008 | error | Same purl has differing strong hashes of the same algorithm |
 | CHAIN009 | error | Exact whole license value denied by supplied policy |
 | CHAIN010 | warning | No license declaration when `requireLicense` is enabled |
+| CHAIN011 | error | Exact component type denied by supplied policy |
 
 Cycles and unreachable components can be legitimate inventory structures. Levels
 represent policy priority, not vulnerability severity or CVSS. Require flags only

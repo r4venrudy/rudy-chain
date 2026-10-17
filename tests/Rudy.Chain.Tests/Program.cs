@@ -303,6 +303,21 @@ Test("optional license requirement loads strictly and produces SARIF warnings", 
     finally { File.Delete(file); }
 });
 
+Test("component type deny list is exact and opt-in", () =>
+{
+    var file = Path.GetTempFileName();
+    try
+    {
+        File.WriteAllText(file,"{\"deniedComponentTypes\":[\"application\"]}");
+        var report = Analysis.Audit(Parse(Fixture(1)),Policy.Load(file));
+        Assert(report.Findings.Single().RuleId == "CHAIN011" && report.Findings.Single().Level == "error");
+        Assert(Sarif.Export(report)["runs"]![0]!["tool"]!["driver"]!["rules"]!.AsArray().Any(rule => rule!["id"]!.GetValue<string>() == "CHAIN011"));
+        File.WriteAllText(file,"{\"deniedComponentTypes\":[\"Application\"]}");
+        Assert(Analysis.Audit(Parse(Fixture(1)),Policy.Load(file)).Findings.Length == 0);
+        File.WriteAllText(file,"{\"deniedComponentTypes\":[42]}"); Reject(() => Policy.Load(file));
+    }
+    finally { File.Delete(file); }
+});
 var failures = 0;
 foreach (var test in tests)
 {

@@ -183,3 +183,9 @@ Set `"requireLicense": true` in your policy to flag components without any licen
 declaration (CHAIN010, warning). This optional flag defaults to false; the original
 requirement flags still default to true. A declared value is metadata, not a license
 compliance decision. Use `--fail-on warning` to enforce it in CI.
+
+### Component type policy
+
+`"deniedComponentTypes": ["file"]` rejects exact declared component types with
+CHAIN011 (error). The list defaults to empty and applies to the root as well as
+other components. Matching is case-sensitive and does not infer a type from names.

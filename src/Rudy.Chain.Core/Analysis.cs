@@ -9,6 +9,7 @@ public static class Analysis
         var previous = graph.Traverse(inventory.Root);
         var findings = new List<Finding>();
         var denied = new HashSet<string>(policy.DeniedPurls, StringComparer.Ordinal);
+        var types = new HashSet<string>(policy.DeniedComponentTypes, StringComparer.Ordinal);
         var licenses = new HashSet<string>(policy.DeniedLicenseValues, StringComparer.Ordinal);
         void Add(string code, string level, string id, string message)
         {
@@ -17,6 +18,8 @@ public static class Analysis
         }
         foreach (var (id, item) in inventory.Components)
         {
+            if (types.Contains(item.Type))
+                Add("CHAIN011", "error", id, "Exact component type is denied by the supplied policy.");
             if (policy.RequireLicense && item.Licenses.Length == 0)
                 Add("CHAIN010", "warning", id, "No component license value is declared.");
             if (policy.RequireStrongHash && !item.HasStrongHash)

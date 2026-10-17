@@ -196,3 +196,10 @@ other components. Matching is case-sensitive and does not infer a type from name
 components, edges, root reachability, explicit leaves, omitted dependency records,
 strong digests, versions, purls and license declarations. Type and scope counts
 retain exact declared strings; an empty scope key means no scope was declared.
+
+### Declared leaves
+
+`rudy-chain leaves examples/after.cdx.json` lists components whose dependency
+records explicitly contain no targets. Omitted records appear separately as
+`unknownDependencyRecords`, including unreachable components. This is an SBOM
+declaration, not proof that a deployed package has no dependencies.

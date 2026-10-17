@@ -15,6 +15,7 @@ static int Run(string[] args)
                 audit <bom.json> [--policy <policy.json>] [--format json|sarif] [--fail-on error|warning|none]
                 why <bom.json> <bom-ref>       shortest declared root path
                 impact <bom.json> <bom-ref>    all declared reverse dependents
+                leaves <bom.json>            explicit terminal dependency records
                 summary <bom.json>           inventory counts and metadata coverage
                 diff <before.json> <after.json>
                 Exit: 0 success, 1 policy threshold reached, 2 input/usage/I/O error.
@@ -37,6 +38,14 @@ static int Run(string[] args)
             var report = Analysis.Audit(Import.Load(args[1]), policy);
             Console.WriteLine(JsonOutput.Serialize(format == "sarif" ? Sarif.Export(report) : report));
             return report.Findings.Any(f => failOn == "error" ? f.Level == "error" : failOn == "warning" && f.Level is "error" or "warning") ? 1 : 0;
+        }
+        if (args[0] == "leaves" && args.Length == 2)
+        {
+            var bom = Import.Load(args[1]);
+            Console.WriteLine(JsonOutput.Serialize(new { schema = "rudy-chain/leaves/v1", inputSha256 = bom.Digest,
+                root = bom.Root, leaves = bom.Dependencies.Where(x => x.Value.Length == 0).Select(x => x.Key).ToArray(),
+                unknownDependencyRecords = bom.Components.Keys.Where(k => !bom.Dependencies.ContainsKey(k)).ToArray(), notices = bom.Notices }));
+            return 0;
         }
         if (args[0] == "summary" && args.Length == 2)
         {

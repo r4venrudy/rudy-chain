@@ -329,6 +329,19 @@ Test("CLI summary distinguishes reachable nodes, leaves and unknown records", ()
     Assert(data.GetProperty("types").GetProperty("application").GetInt32() == 1);
     Assert(Cli("summary","examples/after.cdx.json","--unknown").Code == 2);
 });
+Test("CLI leaves excludes omitted dependency records", () =>
+{
+    var f = Fixture(3); Edge(f,0,1); f["dependencies"]!.AsArray().RemoveAt(2);
+    var file = Path.GetTempFileName();
+    try
+    {
+        File.WriteAllText(file,f.ToJsonString()); var result = Cli("leaves",file); Assert(result.Code == 0);
+        using var doc = JsonDocument.Parse(result.Out);
+        Assert(doc.RootElement.GetProperty("leaves").EnumerateArray().Select(x => x.GetString()).SequenceEqual(new[]{"c1"}));
+        Assert(doc.RootElement.GetProperty("unknownDependencyRecords").EnumerateArray().Select(x => x.GetString()).SequenceEqual(new[]{"c2"}));
+    }
+    finally { File.Delete(file); }
+});
 var failures = 0;
 foreach (var test in tests)
 {

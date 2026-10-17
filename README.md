@@ -203,3 +203,9 @@ retain exact declared strings; an empty scope key means no scope was declared.
 records explicitly contain no targets. Omitted records appear separately as
 `unknownDependencyRecords`, including unreachable components. This is an SBOM
 declaration, not proof that a deployed package has no dependencies.
+
+### Cycle query
+
+`rudy-chain cycles examples/before.cdx.json` exports strongly connected groups
+(including self-loops) with deterministic member ordering. Each group is a set of
+cycle participants, not an ordered route. Missing graph records can hide cycles.

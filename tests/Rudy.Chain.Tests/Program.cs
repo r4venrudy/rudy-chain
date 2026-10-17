@@ -342,6 +342,19 @@ Test("CLI leaves excludes omitted dependency records", () =>
     }
     finally { File.Delete(file); }
 });
+Test("CLI cycles exports self-loops and SCCs without unrelated audit findings", () =>
+{
+    var f = Fixture(3); Edge(f,0,0); Edge(f,1,2); Edge(f,2,1);
+    var file = Path.GetTempFileName();
+    try
+    {
+        File.WriteAllText(file,f.ToJsonString()); var result = Cli("cycles",file); Assert(result.Code == 0);
+        using var doc = JsonDocument.Parse(result.Out); var groups = doc.RootElement.GetProperty("cycles");
+        Assert(groups.GetArrayLength() == 2 && groups[0][0].GetString() == "c0" && groups[1].GetArrayLength() == 2);
+        Assert(!doc.RootElement.TryGetProperty("findings",out _));
+    }
+    finally { File.Delete(file); }
+});
 var failures = 0;
 foreach (var test in tests)
 {

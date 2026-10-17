@@ -52,7 +52,7 @@ known reverse dependents, not a claim that unknown graph portions have no impact
 | --- | --- | --- |
 | CHAIN001 | warning | No declared SHA-256, SHA-384 or SHA-512 digest |
 | CHAIN002 | warning | Missing/blank version |
-| CHAIN003 | note | Missing/blank purl |
+| CHAIN003 | warning | Missing/blank purl |
 | CHAIN004 | warning | No dependency record for a component |
 | CHAIN005 | note | No declared root path |
 | CHAIN006 | note | A dependency SCC with multiple members, or a self-loop |

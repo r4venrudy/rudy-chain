@@ -22,7 +22,7 @@ public static class Analysis
             if (policy.RequireVersion && string.IsNullOrWhiteSpace(item.Version))
                 Add("CHAIN002", "warning", id, "No component version is declared.");
             if (policy.RequirePurl && string.IsNullOrWhiteSpace(item.Purl))
-                Add("CHAIN003", "note", id, "No package URL is declared.");
+                Add("CHAIN003", "warning", id, "No package URL is declared.");
             if (policy.RequireKnownDependencies && !inventory.Dependencies.ContainsKey(id))
                 Add("CHAIN004", "warning", id, "Dependency record omitted: dependencies are unknown, not an asserted empty leaf.");
             if (!previous.ContainsKey(id))

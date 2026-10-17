@@ -275,6 +275,14 @@ Test("strict policy nonboolean flags rejected", () =>
     var path = Path.GetTempFileName(); try { File.WriteAllText(path, "{\"requireStrongHash\":\"true\"}"); Reject(() => Policy.Load(path)); } finally { File.Delete(path); }
 });
 
+Test("missing purl participates in the warning gate", () =>
+{
+    var f = Fixture(1); Item(f, 0).Remove("purl");
+    Assert(Analysis.Audit(Parse(f)).Findings.Single().Level == "warning");
+    var file = Path.GetTempFileName();
+    try { File.WriteAllText(file, f.ToJsonString()); Assert(Cli("audit", file, "--fail-on", "warning").Code == 1); }
+    finally { File.Delete(file); }
+});
 var failures = 0;
 foreach (var test in tests)
 {

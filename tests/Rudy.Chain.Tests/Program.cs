@@ -355,6 +355,16 @@ Test("CLI cycles exports self-loops and SCCs without unrelated audit findings", 
     }
     finally { File.Delete(file); }
 });
+Test("CLI why can explain paths from a selected component", () =>
+{
+    var result = Cli("why","examples/before.cdx.json","parser","--from","web"); Assert(result.Code == 0);
+    using var doc = JsonDocument.Parse(result.Out);
+    Assert(doc.RootElement.GetProperty("source").GetString() == "web");
+    Assert(doc.RootElement.GetProperty("root").GetString() == "app");
+    Assert(doc.RootElement.GetProperty("path").EnumerateArray().Select(x => x.GetString()).SequenceEqual(new[]{"web","parser"}));
+    Assert(Cli("why","examples/before.cdx.json","parser","--from","absent").Code == 2);
+    Assert(Cli("why","examples/before.cdx.json","parser","--invalid","web").Code == 2);
+});
 var failures = 0;
 foreach (var test in tests)
 {

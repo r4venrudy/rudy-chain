@@ -13,7 +13,7 @@ static int Run(string[] args)
             Console.WriteLine("""
                 Rudy Chain 0.1.0 — offline supply-chain review
                 audit <bom.json> [--policy <policy.json>] [--format json|sarif] [--fail-on error|warning|none]
-                why <bom.json> <bom-ref>       shortest declared root path
+                why <bom.json> <bom-ref> [--from <ref>]
                 impact <bom.json> <bom-ref>    all declared reverse dependents
                 cycles <bom.json>            dependency SCCs and self-loops
                 leaves <bom.json>            explicit terminal dependency records
@@ -74,7 +74,7 @@ static int Run(string[] args)
         }
         if (args[0] == "diff" && args.Length == 3)
         { Console.WriteLine(JsonOutput.Serialize(Analysis.Diff(Import.Load(args[1]), Import.Load(args[2])))); return 0; }
-        if (args[0] is "why" or "impact" && args.Length == 3)
+        if (args[0] is "why" or "impact" && (args.Length == 3 || (args[0] == "why" && args.Length == 5)))
         {
             var bom = Import.Load(args[1]);
             var graph = new Graph(bom);
@@ -82,9 +82,11 @@ static int Run(string[] args)
             var unknown = bom.Components.Keys.Where(k => !bom.Dependencies.ContainsKey(k)).ToArray();
             if (args[0] == "why")
             {
-                var path = Graph.Path(graph.Traverse(bom.Root), args[2]);
+                if (args.Length == 5 && args[3] != "--from") throw new InputException("Invalid why option.");
+                var source = args.Length == 5 ? args[4] : bom.Root;
+                var path = Graph.Path(graph.Traverse(source), args[2]);
                 Console.WriteLine(JsonOutput.Serialize(new { schema = "rudy-chain/path/v1", bom.Digest, root = bom.Root,
-                    target = args[2], declaredReachable = path.Path.Length > 0, path = path.Path,
+                    source, target = args[2], declaredReachable = path.Path.Length > 0, path = path.Path,
                     unknownDependencyRecords = unknown, notices = bom.Notices }));
             }
             else

@@ -209,3 +209,10 @@ declaration, not proof that a deployed package has no dependencies.
 `rudy-chain cycles examples/before.cdx.json` exports strongly connected groups
 (including self-loops) with deterministic member ordering. Each group is a set of
 cycle participants, not an ordered route. Missing graph records can hide cycles.
+
+### Paths from a selected component
+
+`rudy-chain why examples/before.cdx.json parser --from web` returns the shortest
+declared path `web → parser`. Without `--from`, queries still start at the BOM
+root. The result retains the inventory `root` and adds the actual `source`. An
+unknown source is rejected; disconnected paths have `declaredReachable: false`.

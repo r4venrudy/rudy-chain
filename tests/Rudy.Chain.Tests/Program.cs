@@ -318,6 +318,17 @@ Test("component type deny list is exact and opt-in", () =>
     }
     finally { File.Delete(file); }
 });
+Test("CLI summary distinguishes reachable nodes, leaves and unknown records", () =>
+{
+    var result = Cli("summary","examples/after.cdx.json"); Assert(result.Code == 0);
+    using var doc = JsonDocument.Parse(result.Out); var data = doc.RootElement;
+    Assert(data.GetProperty("schema").GetString() == "rudy-chain/summary/v1");
+    Assert(data.GetProperty("components").GetInt32() == 4);
+    Assert(data.GetProperty("unknownDependencyRecords").GetInt32() == 1);
+    Assert(data.GetProperty("declaredLeaves").GetInt32() == 1);
+    Assert(data.GetProperty("types").GetProperty("application").GetInt32() == 1);
+    Assert(Cli("summary","examples/after.cdx.json","--unknown").Code == 2);
+});
 var failures = 0;
 foreach (var test in tests)
 {

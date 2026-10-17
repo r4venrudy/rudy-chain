@@ -15,6 +15,7 @@ static int Run(string[] args)
                 audit <bom.json> [--policy <policy.json>] [--format json|sarif] [--fail-on error|warning|none]
                 why <bom.json> <bom-ref>       shortest declared root path
                 impact <bom.json> <bom-ref>    all declared reverse dependents
+                summary <bom.json>           inventory counts and metadata coverage
                 diff <before.json> <after.json>
                 Exit: 0 success, 1 policy threshold reached, 2 input/usage/I/O error.
                 """);
@@ -36,6 +37,22 @@ static int Run(string[] args)
             var report = Analysis.Audit(Import.Load(args[1]), policy);
             Console.WriteLine(JsonOutput.Serialize(format == "sarif" ? Sarif.Export(report) : report));
             return report.Findings.Any(f => failOn == "error" ? f.Level == "error" : failOn == "warning" && f.Level is "error" or "warning") ? 1 : 0;
+        }
+        if (args[0] == "summary" && args.Length == 2)
+        {
+            var bom = Import.Load(args[1]); var graph = new Graph(bom);
+            SortedDictionary<string,int> Counts(Func<Component,string> select) => new(
+                bom.Components.Values.GroupBy(select,StringComparer.Ordinal).ToDictionary(g => g.Key,g => g.Count()),StringComparer.Ordinal);
+            Console.WriteLine(JsonOutput.Serialize(new { schema = "rudy-chain/summary/v1", inputSha256 = bom.Digest,
+                root = bom.Root, components = bom.Components.Count, edges = graph.Forward.Values.Sum(x => x.Length),
+                reachable = graph.Traverse(bom.Root).Count, declaredLeaves = bom.Dependencies.Count(x => x.Value.Length == 0),
+                unknownDependencyRecords = bom.Components.Count - bom.Dependencies.Count,
+                withStrongHash = bom.Components.Values.Count(c => c.HasStrongHash),
+                withVersion = bom.Components.Values.Count(c => !string.IsNullOrWhiteSpace(c.Version)),
+                withPurl = bom.Components.Values.Count(c => !string.IsNullOrWhiteSpace(c.Purl)),
+                withLicense = bom.Components.Values.Count(c => c.Licenses.Length > 0), types = Counts(c => c.Type),
+                scopes = Counts(c => c.Scope), notices = bom.Notices }));
+            return 0;
         }
         if (args[0] == "diff" && args.Length == 3)
         { Console.WriteLine(JsonOutput.Serialize(Analysis.Diff(Import.Load(args[1]), Import.Load(args[2])))); return 0; }

@@ -189,3 +189,10 @@ compliance decision. Use `--fail-on warning` to enforce it in CI.
 `"deniedComponentTypes": ["file"]` rejects exact declared component types with
 CHAIN011 (error). The list defaults to empty and applies to the root as well as
 other components. Matching is case-sensitive and does not infer a type from names.
+
+### Inventory summary
+
+`rudy-chain summary examples/after.cdx.json` emits deterministic JSON counts for
+components, edges, root reachability, explicit leaves, omitted dependency records,
+strong digests, versions, purls and license declarations. Type and scope counts
+retain exact declared strings; an empty scope key means no scope was declared.

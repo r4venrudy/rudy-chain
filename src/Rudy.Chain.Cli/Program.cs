@@ -113,7 +113,7 @@ static int Run(string[] args)
         }
         throw new InputException("Invalid command. Use --help.");
     }
-    catch (Exception ex) when (ex is InputException or IOException or UnauthorizedAccessException)
+    catch (Exception ex) when (ex is InputException or IOException or UnauthorizedAccessException or ArgumentException)
     {
         // Input text and paths are not echoed into terminal diagnostics.
         Console.Error.WriteLine(ex is InputException ? ex.Message : "Unable to read input or write output.");

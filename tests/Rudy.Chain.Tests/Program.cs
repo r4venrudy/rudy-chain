@@ -259,6 +259,11 @@ Test("CLI diff", () =>
     var result = Cli("diff", "examples/before.cdx.json", "examples/after.cdx.json");
     Assert(result.Code == 0); using var doc = JsonDocument.Parse(result.Out); Assert(doc.RootElement.GetProperty("changed").GetArrayLength() == 1);
 });
+Test("CLI reports an empty input path as a usage error", () =>
+{
+    var result = Cli("audit", "");
+    Assert(result.Code == 2 && result.Out.Length == 0 && result.Err == "Unable to read input or write output." + Environment.NewLine);
+});
 Test("CLI usage and missing files have no stdout", () =>
 {
     foreach (var arguments in new[] { new[] { "audit", "no-such-file" }, new[] { "why", "examples/before.cdx.json", "absent" },

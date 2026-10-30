@@ -4,6 +4,10 @@ on:
     tags: ['v*']
 permissions:
   contents: read
+# Do not overlap publication attempts for the same release ref.
+concurrency:
+  group: release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   validate:
     strategy:

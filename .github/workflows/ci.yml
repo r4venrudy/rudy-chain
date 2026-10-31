@@ -38,7 +38,7 @@ jobs:
       - run: dotnet tool install Rudy.Chain.Tool --version 0.1.0 --tool-path .tools --add-source artifacts --configfile NuGet.Config
       - run: .tools/rudy-chain audit examples/before.cdx.json
       - run: .tools/rudy-chain why examples/before.cdx.json parser
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: Rudy.Chain.Tool
           path: artifacts/*.nupkg

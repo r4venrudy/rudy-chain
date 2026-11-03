@@ -60,5 +60,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          python .github/scripts/release_checksums.py artifacts
           python .github/scripts/release_guard.py artifacts
           gh release create "$GITHUB_REF_NAME" artifacts/*.nupkg artifacts/rudy-chain-portable.zip artifacts/SHA256SUMS.txt --prerelease --title "Rudy Chain $GITHUB_REF_NAME" --notes-file docs/RELEASE.md
